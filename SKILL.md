@@ -7,9 +7,9 @@ description: 看 Codex 到底还剩多少配额、几秒后恢复、是不是被
 
 ## 结论先行(本机日志实测,不是博客转述)
 
-在 **ChatGPT 登录态 codex**(端点 `chatgpt.com/backend-api/codex/responses`)里:
+在你这套 **ChatGPT 登录态 codex**(端点 `chatgpt.com/backend-api/codex/responses`)里:
 
-- **不存在 292 调度令牌**。日志里 `status=292` 出现 **0** 次;/responses 只有 200 / 429。网传「292 采集+注入跨 IP 保智」在这里**打不动**。
+- **不存在 292 调度令牌**。156k 条日志里 `status=292` 出现 **0** 次;/responses 只有 200 / 429 / 401 / 503。2026-09-18 再实打一条 `codex exec`(ChatGPT.app 0.154,走 websocket `/responses`)同样没有 292,`current_turn_state` 这个头名也不存在。博客那套「292 采集+注入跨 IP 保智」在官方 Codex 上**打不动**(证伪记录见 brain 记忆)。
 - 「降智 / 限速 / overload」的**真实机制是普通配额限速**,而且 codex **每条响应都把配额状态写在响应头里**,并落进本机 sqlite。读它即可,不用抓包、不用装 CA、不用住宅 IP。
 
 ## 真实的配额头(每条 /responses 响应回)
@@ -27,7 +27,7 @@ description: 看 Codex 到底还剩多少配额、几秒后恢复、是不是被
 
 **429 恰好发生在某个族 `used-percent` 冲到 100 的那一刻。** 谁先到 100 谁先限你 —— 通常是 5h 滚动窗(bengalfox-primary)或周窗(primary)。
 
-`x-codex-turn-state`(值 `gAAAAAB…` 是 Fernet 加密 blob)是**服务端会话态**,只在响应里出现、请求侧从不回传,不是可搬运的凭据 —— 别碰它。
+`x-codex-turn-state`(值 `gAAAAAB…`)是官方客户端自己的**同一轮 sticky routing 令牌**(openai/codex `client.rs`:「used for sticky routing」):一轮里第一次请求不带,同轮工具跟进才回传,下一轮清空。不是博客说的 1 小时保智凭据,跨 IP / 跨账号 / 跨轮都搬不动 —— 别碰它。之前只看 sqlite 响应头,误写成「请求侧从不回传」。
 
 ## 用法
 

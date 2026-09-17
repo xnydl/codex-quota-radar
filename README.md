@@ -4,7 +4,7 @@
 
 纯本地:读本机 codex 日志 sqlite 里每条响应回的 `x-codex-*` 配额头。**零抓包、零 API key、零 CA、零住宅 IP。**
 
-> 顺带证伪了网传的「HTTP 292 调度令牌保智」—— ChatGPT 登录态 codex(端点 `chatgpt.com/backend-api/codex/responses`)的日志里 `status=292` 出现 **0** 次;/responses 只有 200 / 429。降智/限速的真相就是普通配额,codex 把它写在响应头里。详见 [SKILL.md](SKILL.md)。
+> 顺带证伪了网传的「HTTP 292 调度令牌保智」—— 官方 ChatGPT 登录态 Codex 日志里 `status=292` 为 **0**,实打请求也没有;博客说的 `current_turn_state` 不存在。真正的 `x-codex-turn-state` 只是同一轮 sticky routing,下一轮就清空,不是 1 小时保智凭据。降智/限速的真相是配额头。详见 [SKILL.md](SKILL.md)。
 
 ## 它读什么
 
